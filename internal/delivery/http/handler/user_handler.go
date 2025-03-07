@@ -26,7 +26,6 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, utils.ErrorCodeInvalidInput, "Format JSON tidak valid", fiber.StatusBadRequest)
 	}
 	
-	// Validasi input
 	var validationErrors []utils.ErrorDetail
 	
 	if req.Username == "" {
@@ -63,7 +62,6 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 	
 	userID, err := h.userUsecase.Register(c.Context(), req)
 	if err != nil {
-		// Deteksi jenis error dan kirim kode error yang sesuai
 		switch err.Error() {
 		case "username sudah digunakan":
 			return utils.ErrorResponse(c, utils.ErrorCodeDuplicateUsername, "Username sudah digunakan", fiber.StatusBadRequest)
@@ -115,7 +113,8 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 	return utils.SuccessResponse(c, "Login berhasil", resp)
 }
 
-func (h *UserHandler) CreateProfile(c *fiber.Ctx) error {
+
+func (h *UserHandler) UpdateProfile(c *fiber.Ctx) error {
 	claims := c.Locals("claims").(*utils.JWTClaim)
 	
 	userID, err := utils.GetUserIDFromToken(claims)
@@ -134,7 +133,6 @@ func (h *UserHandler) CreateProfile(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, utils.ErrorCodeInvalidInput, "Format JSON tidak valid", fiber.StatusBadRequest)
 	}
 	
-	// Validasi input
 	var validationErrors []utils.ErrorDetail
 	
 	if profile.Name == "" {
@@ -148,18 +146,12 @@ func (h *UserHandler) CreateProfile(c *fiber.Ctx) error {
 		return utils.ValidationError(c, "Validasi gagal", validationErrors)
 	}
 	
-	// Panggil usecase untuk create profile
-	profileID, err := h.userUsecase.CreateProfile(c.Context(), userID, profile.Name, profile.Gender, profile.Address, profile.PhoneNumber)
+	err = h.userUsecase.UpdateProfile(c.Context(), userID, profile.Name, profile.Gender, profile.Address, profile.PhoneNumber)
 	if err != nil {
-		if err.Error() == "user sudah memiliki profil" {
-			return utils.ErrorResponse(c, utils.ErrorCodeResourceAlreadyExist, "Profil sudah dibuat sebelumnya", fiber.StatusBadRequest)
-		}
-		return utils.ServerError(c, "Gagal membuat profil: "+err.Error())
+		return utils.ServerError(c, "Gagal memperbarui profil: "+err.Error())
 	}
 	
-	return utils.SuccessResponse(c, "Profil berhasil dibuat", fiber.Map{
-		"profile_id": profileID,
-	})
+	return utils.SuccessResponse(c, "Profil berhasil diperbarui", nil)
 }
 
 func (h *UserHandler) VerifyEmail(c *fiber.Ctx) error {

@@ -15,4 +15,5 @@ type UserRepository interface {
 	Update(ctx context.Context, user *entity.User) error
 	Delete(ctx context.Context, id int) error
 	UpdateVerificationStatus(ctx context.Context, userID int, isVerified bool) error
+	CreateDefaultProfile(ctx context.Context, userID int) error
 }

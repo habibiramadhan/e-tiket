@@ -163,3 +163,14 @@ func (r *userRepository) Delete(ctx context.Context, id int) error {
 	_, err := r.db.ExecContext(ctx, query, id)
 	return err
 }
+
+func (r *userRepository) CreateDefaultProfile(ctx context.Context, userID int) error {
+	query := `
+		INSERT INTO user_profiles (user_id, name)
+		VALUES ($1, $2)
+		ON CONFLICT (user_id) DO NOTHING
+	`
+
+	_, err := r.db.ExecContext(ctx, query, userID, "Pengguna")
+	return err
+}

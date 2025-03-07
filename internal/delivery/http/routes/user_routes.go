@@ -22,5 +22,5 @@ func SetupUserRoutes(
 	router.Post("/resend-verification", userHandler.ResendVerificationEmail)
 	
 	// Protected routes
-	router.Post("/profile", authMiddleware.AuthenticateJWT(), userHandler.CreateProfile)
+	router.Put("/profile", authMiddleware.AuthenticateJWT(), userHandler.UpdateProfile)
 }
