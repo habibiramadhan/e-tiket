@@ -15,8 +15,8 @@ CREATE TABLE users (
 -- User Profiles
 CREATE TABLE user_profiles (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    name VARCHAR(100),
+    user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    name VARCHAR(100) DEFAULT 'Pengguna',
     gender VARCHAR(20),
     address TEXT,
     phone_number VARCHAR(20),
