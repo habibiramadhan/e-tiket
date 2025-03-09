@@ -39,7 +39,12 @@ func processData(dataChan chan Data, resultChan chan Result, wg *sync.WaitGroup)
                 resultChan <- Result{Value: data.Value * rand.Intn(10)}
                 sharedCounter++
         }
-        close(resultChan)
+        // goroutine processor >=  proses pembacaan hasil nybabin error
+        // Masalahnya: goroutine processor bisa selesai lebih cepat dari consumer,
+		// tapi consumer masih perlu bac data dari channel ini.
+		// kalo ditutup di sini, consumer bisa kebingungan ya karna channelnya
+		// udah ditutup padahal masih ada data yg harus diproses.
+        // close(resultChan)
 }
  
 func consumeResults(resultChan chan Result, wg *sync.WaitGroup, done chan bool) {
@@ -52,7 +57,7 @@ func consumeResults(resultChan chan Result, wg *sync.WaitGroup, done chan bool) 
                 }
                 sharedCounter++
         }
-    done <- true
+        done <- true
 }
  
 func main() {
@@ -63,15 +68,32 @@ func main() {
         resultChan := make(chan Result, 10)
         done := make(chan bool)
  
-        var wg sync.WaitGroup
-        wg.Add(3)
+		// kasih dua wg terpisah biar nggak deadlock
+		var wg sync.WaitGroup
+		// wg.Add(3) // salah nih bang! Jangan campur consumer dengan generator di satu wg
+		wg.Add(2) // Yang benar: wg ini khusus buat generator dan processor aja
+        
+        var consumerWg sync.WaitGroup
+        consumerWg.Add(1)
  
         go generateData(dataChan, numItems, &wg)
         go processData(dataChan, resultChan, &wg)
-        go consumeResults(resultChan, &wg, done)
+		// pake wg terpisah buat consumer biar nggak deadlock
+		// go consumeResults(resultChan, &wg, done)
+		go consumeResults(resultChan, &consumerWg, done)
  
-        wg.Wait()
+		// deadlockbang klo gini! 
+		// wg.Wait() nunggu consumer, consumer nunggu channel ditutup,
+		// tapi channel ditutup sama processor yg juga ditunggu sama wg.Wait()
+		// jadinya saling tunggu terus gak selesai-selesai kayak nunggu gebetan yang gak pernah notice bang
+		// wg.Wait()
+		// fmt.Println("Program finished.")
+		// <- done
+        
+        // Urutan yang benar:
+        wg.Wait() // Tunggu generator dan processor selesai
+        close(resultChan) // Tutup resultChan setelah processor selesai
+        <- done // Tunggu consumer mengirim sinyal selesai
         fmt.Println("Program finished.")
-    <- done
-    fmt.Println("Shared Counter:", sharedCounter)
+        fmt.Println("Shared Counter:", sharedCounter)
 }
