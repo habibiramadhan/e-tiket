@@ -1,3 +1,15 @@
+# Code Review
+
+## Lokasi File
+```
+cmd/pastebin/main.go
+```
+
+## Penjelasn
+Pejelasan ada di komentar dalam file
+
+
+
 # Sistem Tiket Event 🎫
 
 Aplikasi manajemen tiket event berbasis Go dengan Fiber framework. Sistem ini memungkinkan organizer untuk membuat event, dan pengguna untuk membeli tiket event.
