@@ -25,6 +25,7 @@ func SetupRoutes(app *fiber.App, db *sql.DB, cfg *config.Config) {
 	userRepo := postgres.NewUserRepository(db)
 	userProfileRepo := postgres.NewUserProfileRepository(db)
 	emailVerificationRepo := postgres.NewEmailVerificationRepository(db)
+	eventRepo := postgres.NewEventRepository(db)
 	
 	// Middleware
 	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret)
@@ -41,9 +42,10 @@ func SetupRoutes(app *fiber.App, db *sql.DB, cfg *config.Config) {
 	
 	// App URL untuk link verifikasi
 	appURL := fmt.Sprintf("http://localhost:%s", cfg.ServerPort)
+
 	if cfg.AppEnv != "development" {
 		// Di production, gunakan domain yang sebenarnya
-		appURL = "https://your-domain.com" // Sesuaikan dengan domain Anda
+		appURL = "https://your-domain.com" 
 	}
 	
 	// Usecases
@@ -57,14 +59,25 @@ func SetupRoutes(app *fiber.App, db *sql.DB, cfg *config.Config) {
 		appURL,
 	)
 	
+	eventUsecase := usecase.NewEventUsecase(eventRepo, userRepo)
+	
 	// Handlers
 	userHandler := handler.NewUserHandler(userUsecase)
+	eventHandler := handler.NewEventHandler(eventUsecase)
 	
 	// API Group dengan logger middleware
 	api := app.Group("/api", loggerMiddleware.LogRequest())
 	
+
 	// Setup routes
 	SetupUserRoutes(api, userHandler, authMiddleware, loggerMiddleware)
+	SetupEventRoutes(api, eventHandler, authMiddleware)
+	
+	// Debug all routes
+	// log.Println("Registered routes:")
+	// for _, r := range app.GetRoutes() {
+	// 	log.Printf("METHOD: %s, PATH: %s", r.Method, r.Path)
+	// }
 	
 	// Default route
 	app.Get("/", func(c *fiber.Ctx) error {
@@ -73,6 +86,7 @@ func SetupRoutes(app *fiber.App, db *sql.DB, cfg *config.Config) {
 	
 	// 404 Handler
 	app.Use(func(c *fiber.Ctx) error {
+		// log.Printf("404 Not Found: %s %s", c.Method(), c.Path())
 		return utils.ErrorResponse(c, "Not Found", "Endpoint tidak ditemukan", fiber.StatusNotFound)
 	})
 }

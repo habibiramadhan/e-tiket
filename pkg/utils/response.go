@@ -37,6 +37,21 @@ const (
 	ErrorCodeDatabaseError        = "SRV002" // Error database
 	ErrorCodeExternalServiceError = "SRV003" // Error layanan eksternal
 	ErrorCodeMailServiceError     = "SRV004" // Error layanan email
+	
+	// Error codes - Event
+	ErrorCodeEventNotFound        = "EVT001" // Event tidak ditemukan
+	ErrorCodeEventIsFull          = "EVT002" // Event sudah penuh
+	ErrorCodeEventCancelled       = "EVT003" // Event sudah dibatalkan
+	ErrorCodeEventCompleted       = "EVT004" // Event sudah selesai
+	ErrorCodeEventCapacityLow     = "EVT005" // Kapasitas event tidak bisa lebih kecil dari tiket terjual
+	ErrorCodeEventDateInvalid     = "EVT006" // Tanggal event tidak valid (misalnya di masa lalu)
+	ErrorCodeEventOwnership       = "EVT007" // Tidak memiliki izin untuk mengelola event ini
+
+	// Error codes - Ticket
+	ErrorCodeTicketNotFound       = "TKT001" // Tiket tidak ditemukan
+	ErrorCodeTicketAlreadySold    = "TKT002" // Tiket sudah terjual
+	ErrorCodeTicketSoldOut        = "TKT003" // Tiket sudah habis
+	ErrorCodeTicketInvalidQuantity = "TKT004" // Jumlah tiket tidak valid
 )
 
 // APIResponse adalah struktur standar untuk semua respons API
@@ -114,4 +129,29 @@ func NotFoundError(c *fiber.Ctx, message string) error {
 // ServerError mengirimkan respons error internal server
 func ServerError(c *fiber.Ctx, message string) error {
 	return ErrorResponse(c, ErrorCodeServerError, message, fiber.StatusInternalServerError)
+}
+
+// EventNotFoundError mengirimkan respons error event tidak ditemukan
+func EventNotFoundError(c *fiber.Ctx, message string) error {
+	return ErrorResponse(c, ErrorCodeEventNotFound, message, fiber.StatusNotFound)
+}
+
+// EventOwnershipError mengirimkan respons error ketika user bukan pemilik event
+func EventOwnershipError(c *fiber.Ctx, message string) error {
+	return ErrorResponse(c, ErrorCodeEventOwnership, message, fiber.StatusForbidden)
+}
+
+// EventCapacityError mengirimkan respons error terkait kapasitas event
+func EventCapacityError(c *fiber.Ctx, message string) error {
+	return ErrorResponse(c, ErrorCodeEventCapacityLow, message, fiber.StatusBadRequest)
+}
+
+// EventDateError mengirimkan respons error terkait tanggal event
+func EventDateError(c *fiber.Ctx, message string) error {
+	return ErrorResponse(c, ErrorCodeEventDateInvalid, message, fiber.StatusBadRequest)
+}
+
+// TicketSoldOutError mengirimkan respons error tiket habis
+func TicketSoldOutError(c *fiber.Ctx, message string) error {
+	return ErrorResponse(c, ErrorCodeTicketSoldOut, message, fiber.StatusBadRequest)
 }
