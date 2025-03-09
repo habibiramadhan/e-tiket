@@ -1,16 +1,39 @@
 -- migrations/schema.sql
 
+-- Users
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+    username VARCHAR(100) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    phone VARCHAR(20),
     role VARCHAR(20) DEFAULT 'user',
+    is_verified BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- User Profiles
+CREATE TABLE user_profiles (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    name VARCHAR(100) DEFAULT 'Pengguna',
+    gender VARCHAR(20),
+    address TEXT,
+    phone_number VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Email Verifications
+CREATE TABLE email_verifications (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    token VARCHAR(100) UNIQUE NOT NULL,
+    expired_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Events
 CREATE TABLE events (
     id SERIAL PRIMARY KEY,
     owner_id INTEGER REFERENCES users(id),
@@ -26,6 +49,7 @@ CREATE TABLE events (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Tickets
 CREATE TABLE tickets (
     id SERIAL PRIMARY KEY,
     event_id INTEGER REFERENCES events(id),
@@ -36,6 +60,7 @@ CREATE TABLE tickets (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Orders
 CREATE TABLE orders (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id),
@@ -48,6 +73,7 @@ CREATE TABLE orders (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Payments
 CREATE TABLE payments (
     id SERIAL PRIMARY KEY,
     order_id INTEGER REFERENCES orders(id),
@@ -66,6 +92,10 @@ CREATE TABLE payments (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Indexes
+CREATE INDEX idx_user_profiles_user_id ON user_profiles(user_id);
+CREATE INDEX idx_email_verifications_token ON email_verifications(token);
+CREATE INDEX idx_email_verifications_user_id ON email_verifications(user_id);
 CREATE INDEX idx_events_owner ON events(owner_id);
 CREATE INDEX idx_tickets_event ON tickets(event_id);
 CREATE INDEX idx_tickets_user ON tickets(user_id);
@@ -79,12 +109,12 @@ CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_payments_status ON payments(status);
 CREATE INDEX idx_midtrans_transaction ON payments(midtrans_transaction_id);
 
+-- Constraints
 ALTER TABLE events ADD CONSTRAINT check_capacity CHECK (tickets_sold <= max_capacity);
-
 ALTER TABLE events ADD CONSTRAINT check_price CHECK (price >= 0);
-
 ALTER TABLE events ADD CONSTRAINT check_capacity_positive CHECK (max_capacity > 0);
 
+-- Triggers
 CREATE OR REPLACE FUNCTION update_tickets_sold() RETURNS TRIGGER AS $update_tickets_sold$
 BEGIN
     IF NEW.status = 'active' AND (TG_OP = 'INSERT' OR OLD.status != 'active') THEN
