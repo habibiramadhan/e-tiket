@@ -1,5 +1,3 @@
-//cmd/api/main.go
-//cmd/api/main.go
 package main
 
 import (
@@ -19,10 +17,8 @@ import (
 )
 
 func main() {
-	// Load configuration
 	cfg := config.LoadConfig()
 
-	// Setup database configuration
 	dbConfig := database.PostgresConfig{
 		Host:     cfg.DBHost,
 		Port:     cfg.DBPort,
@@ -32,23 +28,19 @@ func main() {
 		SSLMode:  cfg.DBSSLMode,
 	}
 
-	// Establish database connection
 	db, err := database.NewPostgresConnection(dbConfig)
 	if err != nil {
 		log.Fatalf("Gagal menginisialisasi database: %v", err)
 	}
 	defer database.ClosePostgresConnection(db)
 
-	// Verify database connection
 	if err := db.Ping(); err != nil {
 		log.Fatalf("Gagal melakukan ping ke database: %v", err)
 	}
 	log.Println("Koneksi ke database berhasil")
 
-	// Create error middleware
 	errorMiddleware := middleware.NewErrorMiddleware()
 	
-	// Initialize Fiber app
 	app := fiber.New(fiber.Config{
 		AppName:       "Ticket System API",
 		CaseSensitive: true,
@@ -57,8 +49,6 @@ func main() {
 		ErrorHandler:  errorMiddleware.ErrorHandler(),
 	})
 	
-	
-	// CORS Middleware
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "http://localhost:8080", 
 		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
@@ -66,10 +56,8 @@ func main() {
 		AllowCredentials: true,
 	}))
 	
-	// Setup routes
 	routes.SetupRoutes(app, db, cfg)
 
-	// Graceful shutdown
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	
@@ -79,7 +67,6 @@ func main() {
 		_ = app.Shutdown()
 	}()
 
-	// Start server
 	serverAddr := fmt.Sprintf(":%s", cfg.ServerPort)
 	log.Printf("Server berjalan di http://localhost%s", serverAddr)
 	

@@ -14,7 +14,7 @@ type Event struct {
 	MaxCapacity int       `json:"max_capacity"`
 	TicketsSold int       `json:"tickets_sold"`
 	Price       float64   `json:"price"`
-	Status      string    `json:"status"` // active, cancelled, completed
+	Status      string    `json:"status"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }

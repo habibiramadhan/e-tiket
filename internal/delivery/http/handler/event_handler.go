@@ -27,8 +27,7 @@ func (h *EventHandler) CreateEvent(c *fiber.Ctx) error {
 	if err != nil {
 		return utils.ErrorResponse(c, utils.ErrorCodeTokenInvalid, "Token tidak valid", fiber.StatusUnauthorized)
 	}
-	
-	// Hanya organizer yang boleh membuat event
+
 	if claims.Role != "organizer" {
 		return utils.ErrorResponse(c, utils.ErrorCodeUnauthorized, "Anda tidak memiliki izin untuk membuat event", fiber.StatusForbidden)
 	}
@@ -87,13 +86,11 @@ func (h *EventHandler) CreateEvent(c *fiber.Ctx) error {
 		}
 	}
 	
-	// Dapatkan detail event yang baru dibuat
 	event, err := h.eventUsecase.GetEventByID(c.Context(), eventID)
 	if err != nil {
 		return utils.ServerError(c, "Gagal mendapatkan detail event: "+err.Error())
 	}
 	
-	// Kembalikan seluruh data event
 	return utils.CreatedResponse(c, "Event berhasil dibuat", event)
 }
 
@@ -159,7 +156,6 @@ func (h *EventHandler) UpdateEvent(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, utils.ErrorCodeInvalidInput, "Format JSON tidak valid", fiber.StatusBadRequest)
 	}
 	
-	// Validasi data
 	var validationErrors []utils.ErrorDetail
 	
 	if req.Title == "" {
@@ -189,7 +185,6 @@ func (h *EventHandler) UpdateEvent(c *fiber.Ctx) error {
 		}
 	}
 	
-	// Dapatkan detail event yang telah diperbarui
 	event, err := h.eventUsecase.GetEventByID(c.Context(), eventID)
 	if err != nil {
 		return utils.ServerError(c, "Gagal mendapatkan detail event: "+err.Error())

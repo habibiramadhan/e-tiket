@@ -77,7 +77,6 @@ func (u *eventUsecase) CreateEvent(ctx context.Context, userID int, req CreateEv
 		return 0, errors.New("hanya organizer yang dapat membuat event")
 	}
 	
-	// Validasi tanggal event
 	if req.EventDate.Before(time.Now()) {
 		return 0, errors.New("tanggal event tidak boleh di masa lalu")
 	}
@@ -142,17 +141,14 @@ func (u *eventUsecase) UpdateEvent(ctx context.Context, eventID, userID int, req
 		return errors.New("anda tidak memiliki izin untuk mengubah event ini")
 	}
 	
-	// Validasi perubahan kapasitas
 	if req.MaxCapacity < event.TicketsSold {
 		return errors.New("kapasitas tidak boleh lebih kecil dari jumlah tiket yang sudah terjual")
 	}
 	
-	// Validasi status
 	if req.Status != "" && req.Status != "active" && req.Status != "cancelled" && req.Status != "completed" {
 		return errors.New("status tidak valid")
 	}
 	
-	// Update event
 	event.Title = req.Title
 	event.Description = req.Description
 	event.Location = req.Location
@@ -165,7 +161,6 @@ func (u *eventUsecase) UpdateEvent(ctx context.Context, eventID, userID int, req
 		event.Status = req.Status
 	}
 	
-	// Simpan perubahan
 	err = u.eventRepo.Update(ctx, event)
 	if err != nil {
 		return err
@@ -188,15 +183,12 @@ func (u *eventUsecase) DeleteEvent(ctx context.Context, eventID, userID int) err
 		return errors.New("anda tidak memiliki izin untuk menghapus event ini")
 	}
 	
-	// Jika sudah ada tiket terjual, event tidak boleh dihapus
 	if event.TicketsSold > 0 {
-		// Set status menjadi cancelled daripada menghapus
 		event.Status = "cancelled"
 		event.UpdatedAt = time.Now()
 		return u.eventRepo.Update(ctx, event)
 	}
 	
-	// Jika belum ada tiket terjual, event boleh dihapus
 	return u.eventRepo.Delete(ctx, eventID)
 }
 

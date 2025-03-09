@@ -114,3 +114,61 @@ func (m *MockEventRepository) UpdateTicketsSold(ctx context.Context, eventID, qu
 	args := m.Called(ctx, eventID, quantity)
 	return args.Error(0)
 }
+
+type MockTransactionRepository struct {
+	mock.Mock
+}
+
+func (m *MockTransactionRepository) Create(ctx context.Context, transaction *entity.Transaction) (int, error) {
+	args := m.Called(ctx, transaction)
+	return args.Int(0), args.Error(1)
+}
+
+func (m *MockTransactionRepository) FindByID(ctx context.Context, id int) (*entity.Transaction, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*entity.Transaction), args.Error(1)
+}
+
+func (m *MockTransactionRepository) FindByCode(ctx context.Context, code string) (*entity.Transaction, error) {
+	args := m.Called(ctx, code)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*entity.Transaction), args.Error(1)
+}
+
+func (m *MockTransactionRepository) FindByUserID(ctx context.Context, userID, offset, limit int) ([]entity.Transaction, error) {
+	args := m.Called(ctx, userID, offset, limit)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]entity.Transaction), args.Error(1)
+}
+
+func (m *MockTransactionRepository) CountByUserID(ctx context.Context, userID int) (int, error) {
+	args := m.Called(ctx, userID)
+	return args.Int(0), args.Error(1)
+}
+
+func (m *MockTransactionRepository) Update(ctx context.Context, transaction *entity.Transaction) error {
+	args := m.Called(ctx, transaction)
+	return args.Error(0)
+}
+
+func (m *MockTransactionRepository) UpdateStatus(ctx context.Context, id int, status string) error {
+	args := m.Called(ctx, id, status)
+	return args.Error(0)
+}
+
+func (m *MockTransactionRepository) UpdatePaymentProof(ctx context.Context, id int, proofURL string) error {
+	args := m.Called(ctx, id, proofURL)
+	return args.Error(0)
+}
+
+func (m *MockTransactionRepository) VerifyPayment(ctx context.Context, id, verifierID int) error {
+	args := m.Called(ctx, id, verifierID)
+	return args.Error(0)
+}
