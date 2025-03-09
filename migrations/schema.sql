@@ -92,6 +92,24 @@ CREATE TABLE payments (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Transactions (New Table for Direct Transactions without Midtrans)
+CREATE TABLE transactions (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    event_id INTEGER REFERENCES events(id),
+    transaction_code VARCHAR(50) UNIQUE NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    total_amount DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending',
+    payment_method VARCHAR(50) NOT NULL,
+    payment_detail TEXT,
+    payment_proof TEXT,
+    verified_at TIMESTAMP,
+    verified_by INTEGER REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes
 CREATE INDEX idx_user_profiles_user_id ON user_profiles(user_id);
 CREATE INDEX idx_email_verifications_token ON email_verifications(token);
@@ -109,10 +127,18 @@ CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_payments_status ON payments(status);
 CREATE INDEX idx_midtrans_transaction ON payments(midtrans_transaction_id);
 
+-- Transaction Indexes
+CREATE INDEX idx_transactions_user ON transactions(user_id);
+CREATE INDEX idx_transactions_event ON transactions(event_id);
+CREATE INDEX idx_transactions_code ON transactions(transaction_code);
+CREATE INDEX idx_transactions_status ON transactions(status);
+
 -- Constraints
 ALTER TABLE events ADD CONSTRAINT check_capacity CHECK (tickets_sold <= max_capacity);
 ALTER TABLE events ADD CONSTRAINT check_price CHECK (price >= 0);
 ALTER TABLE events ADD CONSTRAINT check_capacity_positive CHECK (max_capacity > 0);
+ALTER TABLE transactions ADD CONSTRAINT check_transaction_quantity CHECK (quantity > 0);
+ALTER TABLE transactions ADD CONSTRAINT check_transaction_amount CHECK (total_amount >= 0);
 
 -- Triggers
 CREATE OR REPLACE FUNCTION update_tickets_sold() RETURNS TRIGGER AS $update_tickets_sold$

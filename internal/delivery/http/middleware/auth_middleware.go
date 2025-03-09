@@ -44,7 +44,6 @@ func (m *AuthMiddleware) AuthenticateJWT() fiber.Handler {
 		}
 
 		log.Printf("Token valid, user: %s, role: %s", claims.Username, claims.Role)
-		// Tambahkan claims ke locals (seperti context di net/http)
 		c.Locals("claims", claims)
 		return c.Next()
 	}

@@ -19,10 +19,8 @@ func (m *LoggerMiddleware) LogRequest() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		start := time.Now()
 		
-		// Proses request
 		err := c.Next()
 		
-		// Log request
 		duration := time.Since(start)
 		log.Printf(
 			"[%s] %s %s %d %s",

@@ -19,6 +19,13 @@ DROP INDEX IF EXISTS idx_payments_status;
 DROP INDEX IF EXISTS idx_midtrans_transaction;
 DROP INDEX IF EXISTS idx_user_profiles_user_id;
 
+-- Transaction Indexes
+DROP INDEX IF EXISTS idx_transactions_user;
+DROP INDEX IF EXISTS idx_transactions_event;
+DROP INDEX IF EXISTS idx_transactions_code;
+DROP INDEX IF EXISTS idx_transactions_status;
+
+DROP TABLE IF EXISTS transactions CASCADE;
 DROP TABLE IF EXISTS payments CASCADE;
 DROP TABLE IF EXISTS orders CASCADE;
 DROP TABLE IF EXISTS tickets CASCADE;
